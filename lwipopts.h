@@ -41,7 +41,7 @@
 #define SIO_FIFO_DEBUG LWIP_DBG_OFF
 #define TCPDUMP_DEBUG LWIP_DBG_ON
 
-#define PPP_DEBUG        LWIP_DBG_OFF
+#define PPP_DEBUG        LWIP_DBG_ON
 #define MEM_DEBUG        LWIP_DBG_OFF
 #define MEMP_DEBUG       LWIP_DBG_OFF
 #define PBUF_DEBUG       LWIP_DBG_OFF
@@ -107,7 +107,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define MEMP_NUM_TCP_SEG        16
 /* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active
    timeouts. */
-#define MEMP_NUM_SYS_TIMEOUT    5
+#define MEMP_NUM_SYS_TIMEOUT    10
 
 /* The following four are used only with the sequential API and can be
    set to 0 if the application only will use the raw API. */
@@ -231,7 +231,8 @@ a lot of data that needs to be copied, this should be set high. */
  * */
 
 #define LWIP_STATS	1
-
+#define LWIP_HAVE_SLIPIF   1            /*  */
+#define SLIP_MAX_SIZE 1500 
 /* ---------- PPP options ---------- */
 
 #define PPP_SUPPORT      0      /* Set > 0 for PPP */
@@ -247,9 +248,9 @@ a lot of data that needs to be copied, this should be set high. */
  */
 #define PAP_SUPPORT      1      /* Set > 0 for PAP. */
 #define CHAP_SUPPORT     1      /* Set > 0 for CHAP. */
-#define MSCHAP_SUPPORT   0      /* Set > 0 for MSCHAP (NOT FUNCTIONAL!) */
-#define CBCP_SUPPORT     0      /* Set > 0 for CBCP (NOT FUNCTIONAL!) */
-#define CCP_SUPPORT      0      /* Set > 0 for CCP (NOT FUNCTIONAL!) */
+#define MSCHAP_SUPPORT   1      /* Set > 0 for MSCHAP (NOT FUNCTIONAL!) */
+#define CBCP_SUPPORT     1      /* Set > 0 for CBCP (NOT FUNCTIONAL!) */
+#define CCP_SUPPORT      1      /* Set > 0 for CCP (NOT FUNCTIONAL!) */
 #define VJ_SUPPORT       1      /* Set > 0 for VJ header compression. */
 #define MD5_SUPPORT      1      /* Set > 0 for MD5 (see also CHAP) */
 

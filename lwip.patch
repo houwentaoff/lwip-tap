@@ -1,0 +1,13 @@
+diff --git a/src/netif/slipif.c b/src/netif/slipif.c
+index 9b175dc..5a9761a 100644
+--- a/src/netif/slipif.c
++++ b/src/netif/slipif.c
+@@ -433,7 +433,7 @@ slipif_poll(struct netif *netif)
+ 
+   priv = (struct slipif_priv *)netif->state;
+ 
+-  while (sio_tryread(priv->sd, &c, 1) > 0) {
++  while (sio_read(priv->sd, &c, 1) > 0) {
+     slipif_rxbyte_input(netif, c);
+   }
+ }
