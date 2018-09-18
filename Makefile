@@ -131,6 +131,7 @@ lwip/src/netif/bridgeif_fdb.c \
 lwip/src/netif/bridgeif.c \
 lwip/src/netif/slipif.c \
 lwip/src/netif/lowpan6.c \
+lwip/src/netif/lowpan6_common.c \
 lwip/src/netif/ethernet.c \
 lwip/src/netif/zepif.c \
 lwip/src/netif/lowpan6_ble.c \
@@ -164,11 +165,11 @@ lwip/src/netif/ppp/pppcrypt.c \
 lwip/src/netif/ppp/pppapi.c \
 lwip/src/netif/ppp/demand.c \
 lwip/src/netif/ppp/vj.c \
+lwip/src/apps/lwiperf/lwiperf.c \
 lwip-contrib/ports/unix/port/sys_arch.c \
 lwip-contrib/ports/unix/port/netif/list.c \
 lwip-contrib/ports/unix/port/netif/pcapif.c \
 lwip-contrib/ports/unix/port/netif/sio.c \
-lwip-contrib/ports/unix/port/netif/tapif.c \
 lwip-contrib/ports/unix/port/netif/fifo.c \
 lwip-contrib/ports/unix/port/perf.c \
 lwip-contrib/apps/udpecho_raw/udpecho_raw.c \
@@ -181,8 +182,10 @@ lwip-contrib/apps/netio/netio.c \
 lwip-contrib/apps/shell/shell.c \
 lwip-contrib/apps/udpecho/udpecho.c \
 lwip-contrib/apps/chargen/chargen.c \
-lwip-contrib/apps/httpserver/httpserver-netconn.c
-
+lwip-contrib/apps/httpserver/httpserver-netconn.c \
+lwip-contrib/examples/lwiperf/lwiperf_example.c \
+tapif.c
+#lwip-contrib/ports/unix/port/netif/tapif.c \
 #SOURCES = \
   lwip/src/api/api_lib.c \
   lwip/src/api/api_msg.c \

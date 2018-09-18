@@ -190,9 +190,12 @@ main(int argc,char *argv[])
 #ifdef LWIP_DEBUG
   while ((ch = getopt(argc,argv,"CEHdhi:")) != -1) {
 #else
-  while ((ch = getopt(argc,argv,"CEHhi:")) != -1) {
+  while ((ch = getopt(argc,argv,"sCEHhi:")) != -1) {
 #endif
     switch (ch) {
+    case 's':
+      lwiperf_example_init();
+      break;
     case 'C':
       chargen_init();
       break;
@@ -221,6 +224,7 @@ main(int argc,char *argv[])
                 &tapif[n],
                 tapif_init,
                 tcpip_input);
+      printf("ip:0x%x netmask:0x%x gw:0x%x\n", tapif[n].ip_addr, tapif[n].netmask, tapif[n].gw);
       if (n == 0)
         netif_set_default(&netif[n]);
       netif_set_up(&netif[n]);
