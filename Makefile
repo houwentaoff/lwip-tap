@@ -249,7 +249,7 @@ depend dep:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MM $(SOURCES) >.depend
 clean:
 	rm -f config.cache config.log
-	rm -f lwip-tap $(OBJS) *~
+	rm -f lwip-tap $(OBJS) *~  *.o
 distclean: clean
 	rm -f Makefile config.h config.status
 	rm -rf autom4te.cache
