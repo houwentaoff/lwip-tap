@@ -85,7 +85,7 @@ extern unsigned char debug_flags;
 #define MEM_ALIGNMENT           4
 
 /* MEM_SIZE: the size of the heap memory. If the application will send
-a lot of data that needs to be copied, this should be set high. */
+   a lot of data that needs to be copied, this should be set high. */
 #define MEM_SIZE               10240 
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
@@ -209,7 +209,7 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* ---------- SNMP options ---------- */
 /** @todo SNMP is experimental for now
-    @note UDP must be available for SNMP transport */
+  @note UDP must be available for SNMP transport */
 #ifndef LWIP_SNMP
 #define LWIP_SNMP               0
 #endif
