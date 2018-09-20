@@ -1,4 +1,4 @@
-lwip-tap
+# lwip-tap
 
 lwip-tap is an application of "lwIP - A Lightweight TCP/IP Stack" which is
 a small, user-space implementation of the TCP/IP protocol stack.
@@ -8,7 +8,7 @@ interfaces, so that it also works as a router. A wide range of different
 network topologies can be built flexibly.
 
 
-1. System Requirement
+## System Requirement
 
 As of now, lwip-tap has been developed only in Linux, more precisely Arch
 Linux with latest updates. The original tapif driver available in the
@@ -18,7 +18,7 @@ work on any environment that supports TAP/TUN-like devices if the tapif
 driver is updated.
 
 
-2. Build
+## Build
 
 Clone the git repository from GitHub and initialize submodules,
 
@@ -36,7 +36,7 @@ Makefile currently does not have install targets. lwip-tap works in-place
 in the source directory. Copy it to anywhere if you like.
 
 
-3. Example: Running lwip-tap with a transient TAP device
+## Example: Running lwip-tap with a transient TAP device
 
 The quickest, but less flexible way to run lwip-tap is, having it create
 a transient TAP device for you,
@@ -51,7 +51,7 @@ interface of the lwIP. To check if the lwIP is working,
   # ping 172.16.0.2
 
 
-4. Example: Attach lwip-tap to a persistent TAP device
+## Example: Attach lwip-tap to a persistent TAP device
 
 For more flexible network settings, all the steps mentioned above can be
 made separately using persistent TAP devices,
@@ -64,14 +64,14 @@ made separately using persistent TAP devices,
   # ping 172.16.0.2
 
 
-5. Example: Use DHCP with a persistent TAP device
+## Example: Use DHCP with a persistent TAP device
 
 If you omit an address to an instance, lwip-tap automatically uses DHCP.
 
   # lwip-tap -i name=tap0
 
 
-6. Example: Run lwip-tap with Open vSwitch
+## Example: Run lwip-tap with Open vSwitch
 
 Add br0 (172.16.0.1),
 
@@ -92,7 +92,7 @@ Run a lwip-tap on tap0 (172.16.0.2),
   # ping 172.16.0.2
 
 
-7. Example: Run lwip-tap as a router
+## Example: Run lwip-tap as a router
 
 Add br0 (172.16.0.1),
 
@@ -138,8 +138,13 @@ a router between 172.16.0.2/24 and 172.16.1.1/24,
   # ping 172.16.1.1
   # ping 172.16.1.2
 
+## Use iperf to Test  
 
-8. Build-in Applications
+1. `./lwip-tap -i addr=172.16.0.3,netmask=255.255.255.0,gw=172.16.0.1,name=tap2 -s`
+2. `iperf -c 172.16.0.3 -p 5001`
+
+
+## Build-in Applications
 
 lwip-tap has currently three built-in applications which has been integrated
 from lwip-contrib for debugging purposes. All applications are disabled by
@@ -150,12 +155,11 @@ default. Use command-line options to enable those services.
   - http (port 80) in TCP (-H)
 
 
-9. Debugging
+## Debugging
 
 lwIP has a compile-time option for debugging which is disable by default.
 To enable it, you need to rebuild lwip-tap giving an option to configure,
 
-  $ configure --enable-debug
   $ make
 
 which compiles all object files with LWIP_DEBUG set to 1 and adds another

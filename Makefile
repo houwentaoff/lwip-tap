@@ -34,11 +34,11 @@ datadir = $(prefix)/share
 
 IP_VERSION = 4
 CC = gcc
-CPPFLAGS = -DHAVE_CONFIG_H -I. -Ilwip-contrib/ports/unix/port/include \
+CPPFLAGS = -g -DHAVE_CONFIG_H -I. -Ilwip-contrib/ports/unix/port/include \
   -Ilwip/src/include/ipv$(IP_VERSION) -Ilwip/src/include \
   -Ilwip-contrib/apps/chargen -Ilwip-contrib/apps/httpserver \
   -Ilwip-contrib/apps/tcpecho -Ilwip-contrib/apps/udpecho 
-CFLAGS =  -Wall -g -O2
+CFLAGS =  -Wall -g -O0
 LDFLAGS = -lpthread -lutil
 LIBS = 
 INSTALL = /usr/bin/install -c

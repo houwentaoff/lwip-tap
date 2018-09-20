@@ -79,7 +79,7 @@
 #define DEVTAP "/dev/net/tun"
 #endif
 #define NETMASK_ARGS "netmask %d.%d.%d.%d"
-#define IFCONFIG_ARGS "tap0 inet %d.%d.%d.%d " NETMASK_ARGS
+#define IFCONFIG_ARGS " inet %d.%d.%d.%d " NETMASK_ARGS
 #elif defined(LWIP_UNIX_OPENBSD)
 #define DEVTAP "/dev/tun0"
 #define NETMASK_ARGS "netmask %d.%d.%d.%d"
@@ -123,6 +123,10 @@ low_level_init(struct netif *netif)
   
   tapif = (struct tapif *)netif->state;
 
+  if (!tapif->name)
+  {
+      tapif->name ="tap0";
+  }
   /* Obtain MAC address from network interface. */
 
   /* (We just fake an address...) */
@@ -156,7 +160,7 @@ low_level_init(struct netif *netif)
     if (preconfigured_tapif) {
       strncpy(ifr.ifr_name, preconfigured_tapif, sizeof(ifr.ifr_name));
     } else {
-      strncpy(ifr.ifr_name, DEVTAP_DEFAULT_IF, sizeof(ifr.ifr_name));
+      strncpy(ifr.ifr_name, tapif->name, sizeof(ifr.ifr_name));
     } 
     ifr.ifr_name[sizeof(ifr.ifr_name)-1] = 0; /* ensure \0 termination */
 
@@ -169,10 +173,9 @@ low_level_init(struct netif *netif)
 #endif /* LWIP_UNIX_LINUX */
 
   netif_set_link_up(netif);
-
   if (preconfigured_tapif == NULL) {
 #if LWIP_IPV4
-    snprintf(buf, 1024, IFCONFIG_BIN IFCONFIG_ARGS,
+    snprintf(buf, 1024, IFCONFIG_BIN "%s" IFCONFIG_ARGS, tapif->name,
              ip4_addr1(netif_ip4_gw(netif)),
              ip4_addr2(netif_ip4_gw(netif)),
              ip4_addr3(netif_ip4_gw(netif)),
@@ -329,6 +332,47 @@ tapif_input(struct netif *netif)
     pbuf_free(p);
   }
 }
+static err_t low_level_probe(struct netif *netif,const char *name)
+{
+    int len;
+    int s;
+    struct ifreq ifr;
+    len = strlen(name);
+    if (len > (IFNAMSIZ-1)) {
+        perror("tapif_init: name is too long");
+        return ERR_IF;
+    }
+    s = socket(AF_INET,SOCK_DGRAM,0);
+    if (s == -1) {
+        perror("tapif_init: socket");
+        return ERR_IF;
+    }
+    memset(&ifr,0,sizeof(ifr));
+    strncpy(ifr.ifr_name,name,len);
+    if (ioctl(s,SIOCGIFHWADDR,&ifr) == -1) {
+        perror("tapif_init: ioctl SIOCGIFHWADDR");
+        goto err;
+    }
+    u8_t* hwaddr = (u8_t*)&ifr.ifr_hwaddr.sa_data;
+    netif->hwaddr[0] = hwaddr[0];
+    netif->hwaddr[1] = hwaddr[1];
+    netif->hwaddr[2] = hwaddr[2];
+    netif->hwaddr[3] = hwaddr[3];
+    netif->hwaddr[4] = hwaddr[4];
+    netif->hwaddr[5] = hwaddr[5] ^ 1;
+    netif->hwaddr_len = 6;
+    if (ioctl(s,SIOCGIFMTU,&ifr) == -1) {
+        perror("tapif_init: ioctl SIOCGIFMTU");
+        goto err;
+    }
+    netif->mtu = ifr.ifr_mtu;
+    close(s);
+    return ERR_OK;
+err:
+    close(s);
+    return ERR_IF;
+}
+
 /*-----------------------------------------------------------------------------------*/
 /*
  * tapif_init():
@@ -342,13 +386,32 @@ tapif_input(struct netif *netif)
 err_t
 tapif_init(struct netif *netif)
 {
-  struct tapif *tapif = (struct tapif *)mem_malloc(sizeof(struct tapif));
-
-  if (tapif == NULL) {
-    LWIP_DEBUGF(NETIF_DEBUG, ("tapif_init: out of memory for tapif\n"));
-    return ERR_MEM;
+  struct tapif *tapif; 
+  char *name = NULL;
+  err_t err=0;
+  if (!netif->state) 
+  {
+      tapif = (struct tapif *)mem_malloc(sizeof(struct tapif));
+      if (tapif == NULL) {
+        LWIP_DEBUGF(NETIF_DEBUG, ("tapif_init: out of memory for tapif\n"));
+        return ERR_MEM;
+      }
+      netif->state = tapif;
   }
-  netif->state = tapif;
+  else 
+  {
+      tapif = (struct tapif *)netif->state;
+      name = tapif->name;
+      if (!name)
+      {
+          err = low_level_probe(netif, name);
+          if (err != ERR_OK)
+          {
+              return err;
+          }
+      }
+  }
+
   MIB2_INIT_NETIF(netif, snmp_ifType_other, 100000000);
 
   netif->name[0] = IFNAME0;
