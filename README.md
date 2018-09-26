@@ -126,10 +126,10 @@ Add tap1 and tap2 to br1,
   # ovs-vsctl add-port br1 tap2
 ```
 Run one lwip-tap on tap2 (172.16.1.2),
-`
+```
   # lwip-tap \
       -i name=tap2,addr=172.16.1.2,netmask=255.255.255.0,gw=172.16.1.1
-`
+```
 Run another lwip-tap on tap0 (172.16.0.2) and tap1 (172.16.1.1), which is
 a router between 172.16.0.2/24 and 172.16.1.1/24,
 ```
@@ -167,3 +167,7 @@ To enable it, you need to rebuild lwip-tap giving an option to configure,
 
 which compiles all object files with LWIP_DEBUG set to 1 and adds another
 option -d to lwip-tap.
+
+## other  
+* `arp`  
+

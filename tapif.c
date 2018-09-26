@@ -64,6 +64,7 @@
 #include <sys/ioctl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#include <netpacket/packet.h>
 /*
  * Creating a tap interface requires special privileges. If the interfaces
  * is created in advance with `tunctl -u <user>` it can be opened as a regular
@@ -78,13 +79,16 @@
 #ifndef DEVTAP
 #define DEVTAP "/dev/net/tun"
 #endif
+//use this
 #define NETMASK_ARGS "netmask %d.%d.%d.%d"
 #define IFCONFIG_ARGS " inet %d.%d.%d.%d " NETMASK_ARGS
 #elif defined(LWIP_UNIX_OPENBSD)
 #define DEVTAP "/dev/tun0"
 #define NETMASK_ARGS "netmask %d.%d.%d.%d"
 #define IFCONFIG_ARGS "tun0 inet %d.%d.%d.%d " NETMASK_ARGS " link0"
+
 #else /* others */
+
 #define DEVTAP "/dev/tap0"
 #define NETMASK_ARGS "netmask %d.%d.%d.%d"
 #define IFCONFIG_ARGS "tap0 inet %d.%d.%d.%d " NETMASK_ARGS
@@ -110,9 +114,97 @@ static void tapif_input(struct netif *netif);
 static void tapif_thread(void *arg);
 #endif /* !NO_SYS */
 
+static int do_tap(struct tapif *tap)
+{
+    int err = 0;
+    struct ifreq ifr;
+    memset(&ifr, 0, sizeof(ifr));
+
+    if (!tap)
+    {
+        printf("tap is null\n");
+        err = -1;
+        return err;
+    } 
+    tap->fd = open(DEVTAP, O_RDWR);
+    LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_init: fd %d\n", tapif->fd));
+    if (tap->fd == -1) {
+        perror("tapif_init: try running \"modprobe tun\" or rebuilding your kernel with CONFIG_TUN; cannot open "DEVTAP);
+        exit(1);
+    }
+
+    strncpy(ifr.ifr_name, tap->name, sizeof(ifr.ifr_name));
+    ifr.ifr_name[sizeof(ifr.ifr_name)-1] = 0; /* ensure \0 termination */
+
+    ifr.ifr_flags = IFF_TAP|IFF_NO_PI;
+    if (ioctl(tap->fd, TUNSETIFF, (void *) &ifr) < 0) {
+        perror("tapif_init: "DEVTAP" ioctl TUNSETIFF");
+        exit(1);
+    }
+    return err;
+}
+static int do_socket(struct tapif *tap)
+{
+    int err = 0;
+    int listenfd;
+    struct ifreq ifr;
+    int ifidx = 0;
+    struct sockaddr_ll fromaddr;
+
+    if (!tap)
+    {
+        printf("tap is null\n");
+        err = -1;
+        return err;
+    }
+
+    if ((listenfd = socket(
+                    //                    AF_INET,
+                    PF_PACKET,
+                    //                    SOCK_STREAM,
+                    SOCK_RAW,
+                    //                    htons(ETH_P_IP)))
+                    //                    htons(ETH_P_ARP)))
+        htons(ETH_P_ALL)))
+            //                    0))
+            < 0) 
+            {
+                perror("socket");
+                exit(1);
+            }
+    bzero(&fromaddr, sizeof(fromaddr));
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, tap->name, strlen(tap->name) + 1);
+    if (ioctl(listenfd, SIOCGIFINDEX, &ifr) != 0)
+    {
+        perror("ioctl SIOCGIFINDEX fail");
+        return -1;
+    }
+    ifidx = ifr.ifr_ifindex;
+    printf("interface Index:%d\n", ifidx);
+    fromaddr.sll_ifindex = ifidx;
+    fromaddr.sll_family = PF_PACKET;
+    fromaddr.sll_protocol=htons(ETH_P_ALL);//ETH_P_ALL);
+
+    err = bind(listenfd, (struct sockaddr*)&fromaddr, sizeof(fromaddr));
+    if (err < 0)
+    {
+        perror("bind err");
+        return err;
+    }
+    //set promisc
+    ifr.ifr_flags &= ~IFF_PROMISC;
+    printf("name %s\n", ifr.ifr_name);
+    if (ioctl(listenfd, SIOCSIFFLAGS, &ifr) < 0)
+    {
+        perror("set flag promisc");
+        err = -5;
+        return err;
+    }
+    return err;
+}
 /*-----------------------------------------------------------------------------------*/
-    static void
-low_level_init(struct netif *netif)
+static void low_level_init(struct netif *netif)
 {
     struct tapif *tapif;
 #if LWIP_IPV4
@@ -140,7 +232,13 @@ low_level_init(struct netif *netif)
 
     /* device capabilities */
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
-
+#if 1
+    //    do_tap(tapif);
+    if (do_socket(tapif) < 0)
+    {
+        exit(2);
+    }
+#else
     tapif->fd = open(DEVTAP, O_RDWR);
     LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_init: fd %d\n", tapif->fd));
     if (tapif->fd == -1) {
@@ -151,7 +249,8 @@ low_level_init(struct netif *netif)
 #endif /* LWIP_UNIX_LINUX */
         exit(1);
     }
-
+#endif
+#if 0
 #ifdef LWIP_UNIX_LINUX
     {
         struct ifreq ifr;
@@ -171,7 +270,7 @@ low_level_init(struct netif *netif)
         }
     }
 #endif /* LWIP_UNIX_LINUX */
-
+#endif
     netif_set_link_up(netif);
     if (preconfigured_tapif == NULL) {
 #if LWIP_IPV4
@@ -219,8 +318,7 @@ low_level_init(struct netif *netif)
  */
 /*-----------------------------------------------------------------------------------*/
 
-    static err_t
-low_level_output(struct netif *netif, struct pbuf *p)
+static err_t low_level_output(struct netif *netif, struct pbuf *p)
 {
     struct tapif *tapif = (struct tapif *)netif->state;
     char buf[1518]; /* max packet size including VLAN excluding CRC */
@@ -262,8 +360,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
  *
  */
 /*-----------------------------------------------------------------------------------*/
-    static struct pbuf *
-    low_level_input(struct netif *netif)
+static struct pbuf *low_level_input(struct netif *netif)
 {
     struct pbuf *p;
     u16_t len;
@@ -314,8 +411,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
  *
  */
 /*-----------------------------------------------------------------------------------*/
-    static void
-    tapif_input(struct netif *netif)
+static void tapif_input(struct netif *netif)
 {
     struct pbuf *p = low_level_input(netif);
 
@@ -383,8 +479,7 @@ err:
  *
  */
 /*-----------------------------------------------------------------------------------*/
-    err_t
-    tapif_init(struct netif *netif)
+err_t tapif_init(struct netif *netif)
 {
     struct tapif *tapif; 
     char *name = NULL;
@@ -432,16 +527,14 @@ err:
 
 
 /*-----------------------------------------------------------------------------------*/
-    void
-tapif_poll(struct netif *netif)
+void tapif_poll(struct netif *netif)
 {
     tapif_input(netif);
 }
 
 #if NO_SYS
 
-    int
-tapif_select(struct netif *netif)
+int tapif_select(struct netif *netif)
 {
     fd_set fdset;
     int ret;
@@ -466,8 +559,7 @@ tapif_select(struct netif *netif)
 
 #else /* NO_SYS */
 
-    static void
-tapif_thread(void *arg)
+static void tapif_thread(void *arg)
 {
     struct netif *netif;
     struct tapif *tapif;
