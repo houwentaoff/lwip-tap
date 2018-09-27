@@ -188,9 +188,9 @@ main(int argc,char *argv[])
     tcpip_init(NULL,NULL);
 
 #ifdef LWIP_DEBUG
-    while ((ch = getopt(argc,argv,"CEHdhi:")) != -1) {
+    while ((ch = getopt(argc,argv,"sCEHdhi:")) != -1) {
 #else
-        while ((ch = getopt(argc,argv,"sCEHhi:")) != -1) {
+    while ((ch = getopt(argc,argv,"sCEHhi:")) != -1) {
 #endif
             switch (ch) {
                 case 's':

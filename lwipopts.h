@@ -32,13 +32,19 @@
 #ifndef __LWIPOPTS_H__
 #define __LWIPOPTS_H__
 
-#define LWIP_IPV4                  1
+//#define __DOXYGEN__             1
+#undef LWIP_DBG
+#define LWIP_DEBUG                1
+#define LWIP_IPV4                 1
+
+//#undef LWIP_DBG_ON
+//#define LWIP_DBG_ON               1
 
 #define LWIP_DBG_MIN_LEVEL 0
 #define LWIP_COMPAT_SOCKETS 1
 #define TAPIF_DEBUG LWIP_DBG_ON
 #define TUNIF_DEBUG LWIP_DBG_OFF
-#define UNIXIF_DEBUG LWIP_DBG_OFF
+#define UNIXIF_DEBUG LWIP_DBG_ON
 #define DELIF_DEBUG LWIP_DBG_OFF
 #define SIO_FIFO_DEBUG LWIP_DBG_OFF
 #define TCPDUMP_DEBUG LWIP_DBG_ON

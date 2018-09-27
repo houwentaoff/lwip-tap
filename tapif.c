@@ -127,7 +127,7 @@ static int do_tap(struct tapif *tap)
         return err;
     } 
     tap->fd = open(DEVTAP, O_RDWR);
-    LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_init: fd %d\n", tapif->fd));
+    LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_init: fd %d\n", tap->fd));
     if (tap->fd == -1) {
         perror("tapif_init: try running \"modprobe tun\" or rebuilding your kernel with CONFIG_TUN; cannot open "DEVTAP);
         exit(1);
@@ -233,11 +233,14 @@ static void low_level_init(struct netif *netif)
     /* device capabilities */
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
 #if 1
-    //    do_tap(tapif);
+#if 1
+    do_tap(tapif);
+#else
     if (do_socket(tapif) < 0)
     {
         exit(2);
     }
+#endif
 #else
     tapif->fd = open(DEVTAP, O_RDWR);
     LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_init: fd %d\n", tapif->fd));
@@ -275,10 +278,10 @@ static void low_level_init(struct netif *netif)
     if (preconfigured_tapif == NULL) {
 #if LWIP_IPV4
         snprintf(buf, 1024, IFCONFIG_BIN "%s" IFCONFIG_ARGS, tapif->name,
-                ip4_addr1(netif_ip4_gw(netif)),
-                ip4_addr2(netif_ip4_gw(netif)),
-                ip4_addr3(netif_ip4_gw(netif)),
-                ip4_addr4(netif_ip4_gw(netif))
+                ip4_addr1(netif_ip4_addr(netif)),
+                ip4_addr2(netif_ip4_addr(netif)),
+                ip4_addr3(netif_ip4_addr(netif)),
+                ip4_addr4(netif_ip4_addr(netif))
 #ifdef NETMASK_ARGS
                 ,
                 ip4_addr1(netif_ip4_netmask(netif)),
