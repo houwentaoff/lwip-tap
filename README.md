@@ -170,4 +170,11 @@ option -d to lwip-tap.
 
 ## other  
 * `arp`  
+* `iperf -c 192.168.28.33 -p 5001`  
+* `iperf -s -B 192.168.28.33 `  
+
+## install tunctl
+* `http://www.rpmfind.net/linux/rpm2html/search.php?query=tunctl` download tunctl  
+* `tunctl -t tap0`  
+* `ifconfig  tap0 inet 192.168.28.33 netmask 255.255.255.0 up`  
 

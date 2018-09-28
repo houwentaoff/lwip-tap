@@ -41,7 +41,7 @@
 #include "udpecho.h"
 
 /* exported in lwipopts.h */
-unsigned char debug_flags = LWIP_DBG_OFF;
+unsigned char debug_flags = LWIP_DBG_ON;
 
 #define NETIF_MAX 64
 

@@ -201,6 +201,7 @@ static int do_socket(struct tapif *tap)
         err = -5;
         return err;
     }
+    tap->fd = listenfd;
     return err;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -233,8 +234,9 @@ static void low_level_init(struct netif *netif)
     /* device capabilities */
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
 #if 1
-#if 1
+#if 0
     do_tap(tapif);
+//    LWIP_DEBUGF(LWIP_DBG_ON, ("1111111111111111tapif_init: 1111111111111111111111fd %d\n", tapif->fd));
 #else
     if (do_socket(tapif) < 0)
     {
