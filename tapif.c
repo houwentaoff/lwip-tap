@@ -81,7 +81,7 @@
 #endif
 //use this
 #define NETMASK_ARGS "netmask %d.%d.%d.%d"
-#define IFCONFIG_ARGS " inet %d.%d.%d.%d " NETMASK_ARGS
+#define IFCONFIG_ARGS " inet %d.%d.%d.%d " NETMASK_ARGS " up"
 #elif defined(LWIP_UNIX_OPENBSD)
 #define DEVTAP "/dev/tun0"
 #define NETMASK_ARGS "netmask %d.%d.%d.%d"
@@ -113,7 +113,19 @@ static void tapif_input(struct netif *netif);
 #if !NO_SYS
 static void tapif_thread(void *arg);
 #endif /* !NO_SYS */
-
+static void print_hex(unsigned char *buf, int len)
+{
+    int i = 0;
+    if (!buf)
+    {
+        return;
+    }
+    for (i=0; i<len; i++)
+    {
+        printf("0x%.2x ", buf[i]);
+    }
+    printf("\n");
+}
 static int do_tap(struct tapif *tap)
 {
     int err = 0;
@@ -347,6 +359,8 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 
     /* signal that packet should be sent(); */
     written = write(tapif->fd, buf, p->tot_len);
+    printf("TX:\n");
+    print_hex(buf, p->tot_len);
     if (written < p->tot_len) {
         MIB2_STATS_NETIF_INC(netif, ifoutdiscards);
         perror("tapif: write");
@@ -372,6 +386,7 @@ static struct pbuf *low_level_input(struct netif *netif)
     ssize_t readlen;
     char buf[1518]; /* max packet size including VLAN excluding CRC */
     struct tapif *tapif = (struct tapif *)netif->state;
+    int i = 0;
 
     /* Obtain the size of the packet and put it into the "len"
        variable. */
@@ -380,6 +395,8 @@ static struct pbuf *low_level_input(struct netif *netif)
         perror("read returned -1");
         exit(1);
     }
+    printf("RX:\n");
+    print_hex(buf, readlen);
     len = (u16_t)readlen;
 
     MIB2_STATS_NETIF_ADD(netif, ifinoctets, len);
